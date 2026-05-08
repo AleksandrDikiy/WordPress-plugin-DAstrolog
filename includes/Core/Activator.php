@@ -1,8 +1,10 @@
 <?php
 /**
  * Клас обробки активації та імпорту даних.
- * Version:     1.1.6
- * Date_update: 2026-05-07
+ * Version:     1.1.7
+ * Date_update: 2026-05-08
+ * * Зміни v1.1.7:
+ * - Відновлено реєстрацію ролі DAstrolog User при активації плагіна.
  */
 
 namespace DAstrolog\Core;
@@ -12,9 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class Activator {
 
     public static function activate() {
+        // Реєстрація кастомної ролі з базовими правами (читання)
+        add_role( 'DAstrolog', __( 'DAstrolog User', 'dastrolog' ), array( 'read' => true ) );
+
         self::create_custom_tables();
         self::seed_default_data();
         update_option( 'da_db_version', DA_DB_VERSION );
+        
+        // Скидання rewrite rules для уникнення помилок маршрутизації
+        flush_rewrite_rules();
     }
 
     private static function create_custom_tables() {
