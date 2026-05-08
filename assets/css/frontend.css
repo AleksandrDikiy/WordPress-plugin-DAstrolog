@@ -1,0 +1,311 @@
+/* ==========================================================================
+   ОСНОВНІ ЗМІННІ ТА КОНТЕЙНЕР
+   ========================================================================== */
+:root {
+    --da-input-height: 30px; /* Мінімальна комфортна висота */
+    --da-border-color: #8c8f94;
+    --da-primary-color: #2271b1;
+    --da-bg-color: #f0f6fc;
+}
+
+.da-container {
+    max-width: 100%;
+    margin: 0 auto;
+    font-family: sans-serif;
+}
+
+/* ==========================================================================
+   НАВІГАЦІЯ ТА НАЛАШТУВАННЯ (Sticky Bar)
+   ========================================================================== */
+/* Спільна обгортка для фіксації всього блоку навігації зверху */
+.da-sticky-wrapper {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    margin-bottom: 12px;
+}
+
+/* Головна панель (Фаза + Вибір дати) */
+.da-forecast-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; 
+    gap: 10px;
+    margin-bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    padding: 6px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* Заголовок Місячного дня всередині панелі */
+.da-moon-title-inline {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1d2327;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.da-phase-inline {
+    font-size: 13px; 
+    font-weight: normal; 
+    color: #50575e; 
+    margin-left: 8px; 
+    padding-left: 8px; 
+    border-left: 1px solid #ccc;
+}
+
+/* Контроли дати */
+.da-forecast-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.da-forecast-label {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0;
+}
+.da-forecast-input {
+    width: 135px !important; 
+    padding-right: 5px !important;
+}
+
+/* Випадаюча панель налаштувань */
+.da-settings-panel {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-top: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.da-profile-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.da-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.da-field label {
+    font-size: 11px;
+    color: #646970;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1;
+}
+
+.da-req { color: #d63638; }
+.da-hidden-honeypot { display: none !important; }
+
+/* Розподіл ширини колонок у формі */
+.da-date-field  { flex: 2; min-width: 140px; }
+.da-time-field  { flex: 1.5; min-width: 110px; }
+.da-coord-field { flex: 1; min-width: 90px; }
+.da-house-field { flex: 2; min-width: 140px; }
+.da-btn-field   { flex: 1; min-width: 110px; }
+
+/* ==========================================================================
+   УНІФІКАЦІЯ ЕЛЕМЕНТІВ ФОРМИ ТА КНОПОК
+   ========================================================================== */
+.da-profile-form input,
+.da-profile-form select,
+.da-forecast-bar input,
+.da-btn {
+    height: var(--da-input-height) !important;
+    min-height: var(--da-input-height) !important;
+    max-height: var(--da-input-height) !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    border: 1px solid var(--da-border-color);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: normal;
+    vertical-align: middle;
+}
+
+.da-btn {
+    background-color: var(--da-primary-color) !important;
+    color: #fff !important;
+    border-color: var(--da-primary-color) !important;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+.da-btn:hover {
+    background-color: #135e96 !important;
+}
+
+/* Компактна кнопка для відкриття налаштувань ⚙️ */
+.da-btn-icon {
+    padding: 0 8px !important;
+    font-size: 16px;
+    background-color: #f0f6fc !important;
+    border-color: var(--da-border-color) !important;
+    color: #1d2327 !important;
+}
+.da-btn-icon:hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   БЛОК МІСЯЧНОГО ДНЯ ТА АСПЕКТИ
+   ========================================================================== */
+.da-moon-container {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.da-moon-main p {
+    margin: 4px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Обмеження тексту "Дія" у 2 рядки з hover ефектом */
+.da-moon-main p:last-of-type {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.3s ease;
+}
+.da-moon-main p:last-of-type:hover {
+    -webkit-line-clamp: unset;
+    background-color: #f8fafc;
+    padding: 4px;
+    border-radius: 4px;
+    cursor: default;
+}
+
+/* Дашборд-сітка для аспектів */
+.da-aspects-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.da-table-wrapper {
+    padding: 15px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.da-positive { background-color: #f0fdf4; border: 1px solid #bbf7d0; }
+.da-positive h4 { color: #166534; margin-top: 0; }
+.da-negative { background-color: #fef2f2; border: 1px solid #fecaca; }
+.da-negative h4 { color: #991b1b; margin-top: 0; }
+
+.da-accordion {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+    align-items: start;
+}
+.da-accordion-item {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s ease-in-out;
+}
+
+.da-accordion-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    background: #fdfdfd;
+    list-style: none;
+    user-select: none;
+}
+.da-accordion-header::-webkit-details-marker { display: none; }
+.da-accordion-header:hover { background: #f3f4f6; }
+.da-accordion-item[open] .da-accordion-header {
+    border-bottom: 1px solid #e5e7eb;
+    background: #f3f4f6;
+}
+
+.da-accordion-body {
+    padding: 15px;
+    line-height: 1.5;
+    color: #374151;
+    background: #fff;
+    font-size: 13px;
+}
+
+.da-planet-t, .da-planet-n { flex: 1; font-size: 14px; }
+.da-planet-t { text-align: right; }
+.da-planet-n { text-align: left; }
+
+.da-aspect-badge {
+    margin: 0 15px;
+    padding: 4px 10px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ==========================================================================
+   АДАПТИВНІСТЬ (MOBILE)
+   ========================================================================== */
+@media (max-width: 900px) {
+    .da-forecast-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .da-forecast-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .da-phase-inline {
+        border-left: none;
+        padding-left: 0;
+        margin-left: 0;
+        display: block;
+        width: 100%;
+        margin-top: 4px;
+    }
+}
+
+@media (max-width: 600px) {
+    .da-accordion-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .da-planet-t, .da-planet-n { 
+        text-align: center; 
+    }
+    .da-aspect-badge {
+        margin: 5px 0;
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "dictionaries": {
+        "natal": "Natal.a2",
+        "transit": "Transit.a2",
+        "house_systems": "Interface.txt"
+    },
+    "interpretations": [
+        {"file": "Transit_Health.txt", "category": "health"},
+        {"file": "Transit_Business.txt", "category": "business"},
+        {"file": "Transit_Love_and_family.txt", "category": "love"},
+        {"file": "Transit_Conjunctions.txt", "category": "general"}
+    ],
+    "moon_days": "Moon_Days.txt",
+    "moon_day_main_sections": ["general", "Дія", "Символ"],
+    "moon_day_keywords": [
+        "Символ",  
+        "Символічний збіг", 
+        "Дія", 
+        "Назви", 
+        "Свастика «зерка»", 
+        "Соціальний вплив", 
+        "Вплив битового", 
+        "Вплив містичного", 
+        "Вплив медицини", 
+        "Вплив лікування", 
+        "Вплив на народжених", 
+        "Вплив на зачатих", 
+        "Вплив на зачаття", 
+        "Медитація", 
+        "Сігнатури", 
+        "Камені"
+    ]
+}

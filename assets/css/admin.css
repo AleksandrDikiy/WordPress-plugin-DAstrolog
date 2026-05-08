@@ -1,0 +1,119 @@
+/**
+ * Стилі для Адміністративної панелі DAstrolog.
+ * Побудовано на CSS-змінних для забезпечення єдиної дизайн-системи.
+ * * Version:     1.1.0
+ * Date_update: 2026-05-07
+ */
+
+:root {
+    --da-admin-primary: #2271b1;
+    --da-admin-success: #008a20;
+    --da-admin-error: #d63638;
+    --da-admin-border: #ccd0d4;
+    --da-admin-bg-light: #f6f7f7;
+    --da-admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Контейнер налаштувань */
+.da-settings-container {
+    max-width: 1000px;
+    margin-top: 20px;
+}
+
+/* Секції імпорту (карточки) */
+.da-import-section {
+    background: #fff;
+    border: 1px solid var(--da-admin-border);
+    box-shadow: var(--da-admin-shadow);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.da-import-info {
+    flex: 1;
+    padding-right: 20px;
+}
+
+.da-import-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #1d2327;
+}
+
+.da-import-info .description {
+    font-style: italic;
+    color: #646970;
+}
+
+.da-import-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 150px;
+}
+
+/* Кнопки імпорту */
+.da-import-btn {
+    min-width: 140px;
+    justify-content: center;
+}
+
+/* Блок логів/повідомлень */
+#da-admin-message {
+    margin: 20px 0;
+    padding: 15px;
+    border-left: 4px solid var(--da-admin-primary);
+    background: #fff;
+    box-shadow: var(--da-admin-shadow);
+    white-space: pre-wrap; /* Зберігає переноси рядків з логів */
+    display: none;
+}
+
+#da-admin-message.success { border-color: var(--da-admin-success); }
+#da-admin-message.error { border-color: var(--da-admin-error); }
+
+/* Стилізація Таблиць Довідників (dictionaries.php) */
+.da-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.da-badge-positive { background: #e7f5ea; color: var(--da-admin-success); }
+.da-badge-negative { background: #fbeae3; color: var(--da-admin-error); }
+.da-badge-neutral  { background: #f0f0f1; color: #50575e; }
+
+/* Колірні позначки аспектів */
+.da-color-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    margin-right: 8px;
+    border: 1px solid rgba(0,0,0,0.1);
+    vertical-align: text-top;
+}
+
+/* Спіннер завантаження */
+.da-import-actions .spinner {
+    float: none;
+    margin: 10px 5px 0 0;
+}
+
+/* Адаптивність */
+@media (max-width: 782px) {
+    .da-import-section {
+        flex-direction: column;
+    }
+    .da-import-actions {
+        align-items: flex-start;
+        margin-top: 15px;
+    }
+}

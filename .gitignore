@@ -1,0 +1,57 @@
+# ─── IDE та Редактори (PhpStorm, VSCode) ───
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ─── Системні файли ОС ───
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ─── Логи та тимчасові файли ───
+*.log
+debug.log
+error_log
+translation.log
+
+# ─── Залежності (якщо в майбутньому додасте) ───
+vendor/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# ─── Збірки та кеш ───
+.sass-cache/
+dist/
+build/
+local_model_cache/
+input/
+output/
+cache/
+# ---- плани та ТЗ для GitHub Copylot
+PLAN*.md
+TEXHNICAL*.md
+TECHNICAL*.md
+# ─── Файли конфігурації (якщо не хочете їх комітити) ───
+.env
+.env.local
+.env.*.local    
+# ─── Інші файли, які не потрібно комітити ───
+*.bak
+*.tmp
+*.backup
+*.old
+*.orig
+*.rej
+*.zip
+*.tar.gz
+*.7z
+*.exe
+*.dll
+*.so
+*.dmg
+*.iso
+ReadMe.txt
+docker.md
+*.pdf
