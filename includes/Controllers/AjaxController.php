@@ -1,8 +1,8 @@
 <?php
 /**
  * Контролер обробки AJAX-запитів (Бекенд та Фронтенд).
- * Version:     1.3.0
- * Date_update: 2026-05-08
+ * Version:     1.5.0
+ * Date_update: 2026-05-10
  */
 
 namespace DAstrolog\Controllers;
@@ -17,11 +17,96 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AjaxController {
 
+    // Додаємо новий інтервал для Cron (кожні 30 хвилин)
+    public function add_cron_intervals( $schedules ) {
+        if ( ! is_array( $schedules ) ) {
+            $schedules = array();
+        }
+        $schedules['da_half_hourly'] = array(
+            'interval' => 1800, // 30 хвилин у секундах
+            'display'  => 'Кожні 30 хвилин' // Прибрали функцію перекладу, яка викликала помилку у WP Crontrol
+        );
+        return $schedules;
+    }
+
+    public function send_daily_forecasts() {
+        $bot_token = get_option('da_tg_bot_token'); 
+        if ( ! $bot_token ) return;
+
+        global $wpdb;
+        // Отримуємо поточний час та дату сервера WordPress
+        $current_time = current_time('H:i:s');
+        $current_date = current_time('Y-m-d');
+        
+        // ФІНАЛЬНА ВЕРСІЯ: Відправляємо лише тим, у кого настав час і сьогодні ще не було відправки
+        $query = $wpdb->prepare("
+            SELECT * FROM {$wpdb->prefix}da_user_profiles 
+            WHERE telegram_chat_id IS NOT NULL 
+              AND telegram_chat_id != ''
+              AND telegram_time <= %s
+              AND (last_tg_sent IS NULL OR last_tg_sent < %s)
+        ", $current_time, $current_date);
+        
+        $users = $wpdb->get_results( $query );
+        if ( empty($users) ) {
+            error_log('[DAstrolog TG] Користувачів для відправки не знайдено (перевірте час).');
+            return;
+        }
+        
+        $calculator = new \DAstrolog\Services\AstroCalculator();
+
+        foreach ( $users as $user ) {
+            $text = $calculator->get_telegram_forecast_text( date('d.m.Y', strtotime($user->birth_date)), $user->birth_time );
+            
+            $response = wp_remote_post( "https://api.telegram.org/bot{$bot_token}/sendMessage", [
+                'headers' => ['Content-Type' => 'application/json'],
+                'body' => wp_json_encode([
+                    'chat_id'    => trim($user->telegram_chat_id),
+                    'text'       => $text,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => [
+                        'inline_keyboard' => [
+                            [
+                                [
+                                    'text' => '📖 Читати детальний прогноз',
+                                    'url'  => 'https://fbudget.pp.ua/dastrolog/'
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
+            ]);
+
+            // Діагностика у лог-файл (debug.log)
+            if ( is_wp_error( $response ) ) {
+                error_log('[DAstrolog TG Error] Помилка з\'єднання з Telegram: ' . $response->get_error_message());
+            } else {
+                $status_code = wp_remote_retrieve_response_code( $response );
+                $body = wp_remote_retrieve_body( $response );
+                error_log("[DAstrolog TG] Юзер: {$user->user_id} | Статус: {$status_code} | Відповідь Telegram: {$body}");
+
+                // Записуємо успіх ТІЛЬКИ якщо Telegram підтвердив доставку (200 OK)
+                if ( $status_code == 200 ) {
+                    $wpdb->update(
+                        "{$wpdb->prefix}da_user_profiles",
+                        ['last_tg_sent' => $current_date],
+                        ['user_id' => $user->user_id],
+                        ['%s'],
+                        ['%d']
+                    );
+                }
+            }
+        }
+    }
+    
     public function __construct() {
+        // Реєструємо наш кастомний 30-хвилинний розклад та подію розсилки
+        add_filter( 'cron_schedules', array( $this, 'add_cron_intervals' ) );
+        add_action( 'da_telegram_broadcast', array( $this, 'send_daily_forecasts' ) );
         // Адмінські дії
         add_action( 'wp_ajax_da_import_zet_data', array( $this, 'handle_import_zet_data' ) );
         add_action( 'wp_ajax_da_update_aspect', array( $this, 'handle_update_aspect' ) );
-        
+        add_action( 'wp_ajax_da_test_tg_send', array( $this, 'handle_test_tg_send' ) );
         // Фронтенд дії
         add_action( 'wp_ajax_da_save_profile', array( $this, 'handle_save_profile' ) );
         add_action( 'wp_ajax_da_get_forecast', array( $this, 'handle_get_forecast' ) );
@@ -54,6 +139,48 @@ class AjaxController {
     }
 
     // --- ОБРОБНИКИ ---
+
+    public function handle_test_tg_send() {
+        $this->verify_admin_request( 'da_admin_action' );
+        
+        $bot_token = get_option('da_tg_bot_token');
+        if ( ! $bot_token ) wp_send_json_error(['message' => 'Токен не вказано.']);
+
+        $user_id = get_current_user_id();
+        $model = new \DAstrolog\Models\UserProfileModel();
+        $user = $model->get_profile( $user_id );
+
+        if ( ! $user || empty($user['telegram_chat_id']) ) {
+            wp_send_json_error(['message' => 'Вкажіть ваш Telegram ID у профілі на сайті!']);
+        }
+
+        $calculator = new AstroCalculator();
+        $text = $calculator->get_telegram_forecast_text( date('d.m.Y', strtotime($user['birth_date'])), $user['birth_time'] );
+        
+        $response = wp_remote_post( "https://api.telegram.org/bot{$bot_token}/sendMessage", [
+            'headers' => ['Content-Type' => 'application/json'],
+            'body' => wp_json_encode([
+                'chat_id'    => trim($user['telegram_chat_id']),
+                'text'       => $text,
+                'parse_mode' => 'HTML',
+                'reply_markup' => [
+                    'inline_keyboard' => [[['text' => '📖 Читати детальний прогноз', 'url' => home_url('/dastrolog/')]]]
+                ]
+            ])
+        ]);
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+
+        $status = wp_remote_retrieve_response_code( $response );
+        if ( $status == 200 ) {
+            wp_send_json_success(['message' => 'Надіслано! Перевірте Telegram.']);
+        } else {
+            $body = json_decode(wp_remote_retrieve_body( $response ), true);
+            wp_send_json_error(['message' => 'Помилка Telegram: ' . ($body['description'] ?? 'невідомо')]);
+        }
+    }
 
     public function handle_import_zet_data() {
         $this->verify_admin_request( 'da_admin_action' );

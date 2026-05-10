@@ -1,4 +1,10 @@
 <?php
+/**
+ * Рендер сторінки налаштувань плагіна в адмінці.
+ * Виводить статус математичного ядра та форми для імпорту баз даних ZET.
+ * Version:     1.2.0
+ * Date_update: 2026-05-10
+ */
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -24,7 +30,30 @@ if ( ! defined( 'ABSPATH' ) ) {
         <p><?php esc_html_e( 'Переконайтеся, що файли збережені у кодуванні UTF-8 та завантажені у папку /assets/data/ вашого плагіна.', 'dastrolog' ); ?></p>
     </div>
 
-    <table class="form-table">
+    <form method="post" action="options.php" style="background: #fff; padding: 15px 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); margin-bottom: 20px;">
+        <?php settings_fields( 'da_settings_group' ); ?>
+        <h2 style="margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee;"><?php esc_html_e( 'Налаштування Telegram-бота', 'dastrolog' ); ?></h2>
+        <table class="form-table" style="margin-top: 0;">
+            <tr valign="top">
+                <th scope="row" style="width: 200px; padding: 15px 10px 15px 0;">
+                    <label for="da_tg_bot_token"><?php esc_html_e( 'Telegram API Token', 'dastrolog' ); ?></label>
+                </th>
+                <td style="padding: 15px 10px;">
+                    <input type="text" id="da_tg_bot_token" name="da_tg_bot_token" value="<?php echo esc_attr( get_option('da_tg_bot_token') ); ?>" style="width: 400px;" placeholder="Напр. 1234567890:AAHqwertyuiop..." />
+                    <p class="description"><?php esc_html_e( 'Вставте сюди API Token, який ви отримали від @BotFather.', 'dastrolog' ); ?></p>
+                </td>
+            </tr>
+        </table>
+        <?php submit_button( 'Зберегти токен', 'primary', 'submit', false ); ?>
+        &nbsp;
+<button type="button" id="da-test-tg-btn" class="button button-secondary">
+    <?php esc_html_e( 'Надіслати мені тестовий прогноз', 'dastrolog' ); ?>
+</button>
+<span id="da-tg-test-status" style="margin-left: 10px;"></span>
+    </form>
+
+    <h2 style="margin-top: 30px;"><?php esc_html_e( 'Імпорт баз даних ZET', 'dastrolog' ); ?></h2>
+    <table class="form-table" style="background: #fff; padding: 15px 20px; border: 1px solid #ccd0d4; display: block;">
         <tr>
             <th scope="row"><?php esc_html_e( '1. Імпорт Довідників (Аспекти, Орбіси, Доми)', 'dastrolog' ); ?></th>
             <td>
@@ -104,6 +133,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     $('#da-import-moon').on('click', function() {
         triggerImport('moon_days', '#da-import-moon', '#da-moon-spinner');
+    });
+
+    // Обробник для тестової відправки в Telegram
+    $('#da-test-tg-btn').on('click', function() {
+        var $btn = $(this);
+        var $status = $('#da-tg-test-status');
+        
+        $btn.prop('disabled', true);
+        $status.text('Відправка...');
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'da_test_tg_send',
+                nonce: '<?php echo esc_js( $nonce ); ?>'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $status.css('color', 'green').text('✅ ' + response.data.message);
+                } else {
+                    $status.css('color', 'red').text('❌ ' + response.data.message);
+                }
+            },
+            error: function() {
+                $status.css('color', 'red').text('Помилка сервера.');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
     });
 
 })(jQuery);

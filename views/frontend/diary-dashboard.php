@@ -50,6 +50,15 @@
                         <?php endforeach; endif; ?>
                     </select>
                 </div>
+                <div class="da-field da-tg-field">
+                    <label><?php esc_html_e( 'Telegram ID', 'dastrolog' ); ?></label>
+                    <input type="text" name="telegram_chat_id" value="<?php echo esc_attr( $data['telegram_chat_id'] ?? '' ); ?>" placeholder="123456789">
+                </div>
+                
+                <div class="da-field da-time-field">
+                    <label><?php esc_html_e( 'Час розсилки', 'dastrolog' ); ?></label>
+                    <input type="time" name="telegram_time" value="<?php echo esc_attr( $data['telegram_time'] ?? '07:30' ); ?>">
+                </div>
 
                 <div class="da-field da-btn-field">
                     <button type="submit" class="da-btn da-save-btn">

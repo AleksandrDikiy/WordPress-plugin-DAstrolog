@@ -2,8 +2,8 @@
 /**
  * Модель для роботи з таблицею профілів користувачів (wp_da_user_profiles).
  *
- * Version:     1.1.0
- * Date_update: 2026-05-07
+ * Version:     1.2.0
+ * Date_update: 2026-05-10
  * * Зміни v1.1.0:
  * - Реалізовано UPSERT (INSERT ... ON DUPLICATE KEY UPDATE).
  * - Додано сувору валідацію дат згідно з AGENTS.md.
@@ -63,6 +63,13 @@ class UserProfileModel {
         $lng             = (float) ( $data['lng'] ?? 0 );
         $house_system_id = absint( $data['house_system_id'] ?? 1 );
         
+        // НОВІ ПОЛЯ: Telegram
+        $telegram_chat_id = sanitize_text_field( wp_unslash( $data['telegram_chat_id'] ?? '' ) );
+        $telegram_time    = sanitize_text_field( wp_unslash( $data['telegram_time'] ?? '07:30' ) );
+        if ( strlen( $telegram_time ) === 5 ) {
+            $telegram_time .= ':00'; // Формат БД вимагає ГГ:ХХ:СС
+        }
+        
         // Обробка JSON налаштувань
         $settings = isset( $data['settings_json'] ) ? json_decode( wp_unslash( $data['settings_json'] ), true ) : array();
         if ( ! is_array( $settings ) ) {
@@ -76,16 +83,18 @@ class UserProfileModel {
             return new \WP_Error( 'invalid_date', 'Невірний формат або значення дати народження.' );
         }
 
-        // 3. Використання Prepared Statement для безпеки
+        // 3. Використання Prepared Statement для безпеки (з UPSERT Telegram полів)
         $sql = "INSERT INTO {$this->table_name} 
-                (user_id, birth_date, birth_time, lat, lng, house_system_id, settings_json) 
-                VALUES (%d, %s, %s, %f, %f, %d, %s) 
+                (user_id, birth_date, birth_time, lat, lng, house_system_id, telegram_chat_id, telegram_time, settings_json) 
+                VALUES (%d, %s, %s, %f, %f, %d, %s, %s, %s) 
                 ON DUPLICATE KEY UPDATE 
                 birth_date = VALUES(birth_date), 
                 birth_time = VALUES(birth_time), 
                 lat = VALUES(lat), 
                 lng = VALUES(lng), 
                 house_system_id = VALUES(house_system_id), 
+                telegram_chat_id = VALUES(telegram_chat_id),
+                telegram_time = VALUES(telegram_time),
                 settings_json = VALUES(settings_json)";
 
         return $wpdb->query( $wpdb->prepare( 
@@ -96,6 +105,8 @@ class UserProfileModel {
             $lat, 
             $lng, 
             $house_system_id, 
+            $telegram_chat_id,
+            $telegram_time,
             $settings_json 
         ) );
     }

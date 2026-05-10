@@ -3,8 +3,8 @@
  * Plugin Name: DAstrolog - Personal Astrology Forecast
  * Plugin URI:  https://fbudget.pp.ua/DAstrolog/
  * Description: Еталонний Enterprise-плагін для щоденного астрологічного прогнозу на основі транзитів до натальної карти. Використовує швейцарські ефемеріди (swetest).
- * Version:     1.2.2
- * Date_update: 2026-05-08
+ * Version:     1.3.2
+ * Date_update: 2026-05-10
  * Author:      Senior PHP Developer
  * Text Domain: dastrolog
  *
@@ -18,8 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * 1. ВИЗНАЧЕННЯ КОНСТАНТ
  */
-define( 'DA_VERSION', '1.2.2' );
-define( 'DA_DB_VERSION', '1.1.0' );
+define( 'DA_VERSION', '1.3.2' );
+define( 'DA_DB_VERSION', '1.2.0' );
 define( 'DA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -59,19 +59,23 @@ register_deactivation_hook( __FILE__, array( 'DAstrolog\\Core\\Deactivator', 'de
  * Ініціалізація компонентів та реєстрація їхніх хуків через Loader.
  */
 function run_dastrolog() {
-    $loader = new DAstrolog\Core\Loader();
+    // Відкладаємо запуск всього плагіна до повного завантаження ядра WordPress
+    add_action( 'plugins_loaded', function() {
+        // МІГРАЦІЯ БАЗИ ДАНИХ
+        if ( get_option( 'da_db_version' ) !== DA_DB_VERSION ) {
+            require_once DA_PLUGIN_DIR . 'includes/Core/Activator.php';
+            \DAstrolog\Core\Activator::activate(); 
+        }
 
-    // Ініціалізація контролерів
-    $admin_controller    = new DAstrolog\Controllers\AdminController();
-    $ajax_controller     = new DAstrolog\Controllers\AjaxController();
-    $frontend_controller = new DAstrolog\Controllers\FrontendController();
+        $loader = new \DAstrolog\Core\Loader();
 
-    /**
-     * ПРИМІТКА: На даному етапі контролери самі додають хуки у конструкторах.
-     * У майбутньому ми перенесемо реєстрацію хуків сюди, використовуючи $loader->add_action().
-     */
+        // Ініціалізація контролерів
+        $admin_controller    = new \DAstrolog\Controllers\AdminController();
+        $ajax_controller     = new \DAstrolog\Controllers\AjaxController();
+        $frontend_controller = new \DAstrolog\Controllers\FrontendController();
 
-    $loader->run();
+        $loader->run();
+    });
 }
 
 run_dastrolog();

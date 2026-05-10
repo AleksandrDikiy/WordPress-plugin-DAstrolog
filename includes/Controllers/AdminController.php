@@ -1,8 +1,8 @@
 <?php
 /**
  * Контролер Адмін-панелі.
- * Version:     1.1.1
- * Date_update: 2026-05-07
+ * Version:     1.2.0
+ * Date_update: 2026-05-10
  */
 
 namespace DAstrolog\Controllers;
@@ -16,6 +16,12 @@ class AdminController {
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+        add_action( 'admin_init', array( $this, 'register_plugin_settings' ) );
+    }
+
+    public function register_plugin_settings() {
+        // Реєструємо опцію для токена Telegram-бота
+        register_setting( 'da_settings_group', 'da_tg_bot_token', 'sanitize_text_field' );
     }
 
     public function register_admin_menu() {

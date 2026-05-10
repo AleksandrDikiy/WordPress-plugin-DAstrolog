@@ -16,7 +16,11 @@
                 birth_time: $form.find('input[name="birth_time"]').val(),
                 lat: $form.find('input[name="lat"]').val(),
                 lng: $form.find('input[name="lng"]').val(),
-                house_system: $form.find('select[name="house_system"]').val(),
+                house_system_id: $form.find('select[name="house_system"]').val(),
+                
+                // НОВІ ПОЛЯ ТЕЛЕГРАМ:
+                telegram_chat_id: $form.find('input[name="telegram_chat_id"]').val(),
+                telegram_time: $form.find('input[name="telegram_time"]').val()
             };
 
             $.post(da_vars.ajax_url, data, function(response) {

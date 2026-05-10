@@ -1,9 +1,9 @@
 <?php
 /**
  * Клас обробки активації та імпорту даних.
- * Version:     1.1.7
- * Date_update: 2026-05-08
- * * Зміни v1.1.7:
+ * Version:     1.2.0
+ * Date_update: 2026-05-10
+ * Зміни v1.1.7:
  * - Відновлено реєстрацію ролі DAstrolog User при активації плагіна.
  */
 
@@ -20,6 +20,16 @@ class Activator {
         self::create_custom_tables();
         self::seed_default_data();
         update_option( 'da_db_version', DA_DB_VERSION );
+ 
+        // ПРИМУСОВО ОЧИЩАЄМО КЕШ РОЗКЛАДІВ, щоб WordPress побачив нову назву без перекладу
+        wp_clear_scheduled_hook( 'da_daily_telegram_broadcast' );
+        wp_clear_scheduled_hook( 'da_telegram_broadcast' );
+        delete_option( 'cron' ); 
+        
+        // Реєструємо новий хук, який працюватиме кожні 30 хвилин
+        if ( ! wp_next_scheduled( 'da_telegram_broadcast' ) ) {
+            wp_schedule_event( time(), 'da_half_hourly', 'da_telegram_broadcast' );
+        }
         
         // Скидання rewrite rules для уникнення помилок маршрутизації
         flush_rewrite_rules();
@@ -89,6 +99,9 @@ class Activator {
             lat decimal(10,6) NOT NULL,
             lng decimal(10,6) NOT NULL,
             house_system_id bigint(20) unsigned NOT NULL,
+            telegram_chat_id varchar(50) DEFAULT NULL,
+            telegram_time time DEFAULT '07:30:00',
+            last_tg_sent date DEFAULT NULL,
             settings_json longtext NOT NULL,
             PRIMARY KEY  (user_id)
         ) $charset_collate;";

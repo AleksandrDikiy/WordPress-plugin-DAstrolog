@@ -1,8 +1,8 @@
 <?php
 /**
  * Ядро астрологічних обчислень через бінарник swetest.
- * Version:     1.1.2
- * Date_update: 2026-05-06
+ * Version:     1.2.0
+ * Date_update: 2026-05-10
  */
 
 namespace DAstrolog\Services;
@@ -263,7 +263,9 @@ class AstroCalculator {
 
                         $results[ $aspect['type'] ][] = array(
                             'transit_planet' => $planet_names[$t_id] ?? 'Планета '.$t_id,
+                            'transit_p_id'   => $t_id,
                             'natal_planet'   => $planet_names[$n_id] ?? 'Планета '.$n_id,
+                            'natal_p_id'     => $n_id,
                             'aspect_name'    => $aspect['name'],
                             'color'          => $aspect['color_hex'],
                             'description'    => $desc_html
@@ -278,4 +280,57 @@ class AstroCalculator {
         }
         return $results;
     }
+    /**
+     * Формування короткого тексту для Telegram
+     */
+    public function get_telegram_forecast_text( $birth_date, $birth_time, $target_date = null ) {
+        if ( ! $target_date ) $target_date = date('d.m.Y');
+        
+        $moon_day_num = $this->get_moon_day( $target_date, '12:00:00' );
+        $moon_info    = $this->get_moon_day_description( $moon_day_num );
+        $moon_data    = json_decode( $moon_info['description'], true );
+        $phase_info   = $this->get_moon_phase_info( $target_date, '12:00:00' );
+        $transits     = $this->calculate_daily_transits( $birth_date, $birth_time, $target_date );
+
+        // Значки аспектів (розширений словник для будь-якої мови)
+        $symbols = [
+            'Соедин' => '☌', 'З\'єднан' => '☌', 
+            'Секст'  => '⚹', 
+            'Квадрат'=> '□', 
+            'Тригон' => '△', 'Трігон' => '△', 
+            'Оппоз'  => '☍', 'Опоз' => '☍',
+            'Квинк'  => '⚻', 'Квінк' => '⚻'
+        ];
+        // Значки планет
+        $planets = [1=>'☉', 2=>'☽', 3=>'☿', 4=>'♀', 5=>'♂', 6=>'♃', 7=>'♄', 8=>'♅', 9=>'♆', 10=>'♇'];
+
+        $text = "<b>" . $phase_info['phase_name'] . "</b> " . $moon_day_num . " - " . ($moon_data['Дія'] ?? '') . "\n\n";
+
+        if ( ! empty($transits['positive']) ) {
+            $text .= "🟢 <b>Сприятливо:</b>\n";
+            foreach ($transits['positive'] as $tr) {
+                $s = '';
+                foreach($symbols as $k=>$v) { if(mb_stripos($tr['aspect_name'], $k)!==false) $s = $v; }
+                $text .= $planets[$tr['transit_p_id']] . " " . $s . " " . $planets[$tr['natal_p_id']] . "\n";
+            }
+            $text .= "\n";
+        }
+
+        if ( ! empty($transits['negative']) ) {
+            $text .= "🔴 <b>Обережність:</b>\n";
+            foreach ($transits['negative'] as $tr) {
+                $s = '';
+                foreach($symbols as $k=>$v) { if(mb_stripos($tr['aspect_name'], $k)!==false) $s = $v; }
+                $text .= $planets[$tr['transit_p_id']] . " " . $s . " " . $planets[$tr['natal_p_id']] . "\n";
+            }
+            $text .= "\n";
+        }
+
+        if ( $phase_info ) {
+            $text .= "✨ Зміна фази: " . $phase_info['next_phase_date'] . " (" . $phase_info['next_phase_name'] . ")\n";
+        }
+
+        return $text;
+    }
+    // Додаткові методи для розрахунку прогресій, солярів та інших астрологічних технік можна додати тут
 }
